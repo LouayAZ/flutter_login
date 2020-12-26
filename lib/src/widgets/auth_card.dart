@@ -60,7 +60,7 @@ class AuthCardState extends State<AuthCard> with TickerProviderStateMixin {
   Animation<double> _cardOverlaySizeAndOpacityAnimation;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
 
     _pageController = TransformerPageController();
@@ -352,10 +352,16 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
 
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
+  final _phoneNumberFocusNode = FocusNode();
+  final _firstNameFocusNode = FocusNode();
+  final _lastNameFocusNode = FocusNode();
 
   TextEditingController _nameController;
   TextEditingController _passController;
   TextEditingController _confirmPassController;
+  TextEditingController _phoneNumberController;
+  TextEditingController _firstNameController;
+  TextEditingController _lastNameController;
 
   var _isLoading = false;
   var _isSubmitting = false;
@@ -382,6 +388,9 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
     _nameController = TextEditingController(text: auth.email);
     _passController = TextEditingController(text: auth.password);
     _confirmPassController = TextEditingController(text: auth.confirmPassword);
+    _phoneNumberController = TextEditingController(text:auth.phoneNumber); // TODO
+    _firstNameController = TextEditingController(text:auth.firstName);
+    _lastNameController = TextEditingController(text:auth.lastName);
 
     _loadingController = widget.loadingController ??
         (AnimationController(
@@ -474,6 +483,9 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
       error = await auth.onSignup(LoginData(
         name: auth.email,
         password: auth.password,
+        phoneNumber: auth.phoneNumber,
+        firstName: auth.firstName,
+        lastName: auth.lastName 
       ));
     }
 
@@ -549,18 +561,76 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
       inertiaDirection: TextFieldInertiaDirection.right,
       labelText: messages.confirmPasswordHint,
       controller: _confirmPassController,
-      textInputAction: TextInputAction.done,
+      textInputAction: TextInputAction.next,
       focusNode: _confirmPasswordFocusNode,
+      onFieldSubmitted: (value){
+        FocusScope.of(context).requestFocus(_firstNameFocusNode);
+      },
+      onSaved: (value) => auth.phoneNumber = value,
+    );
+  }
+
+  Widget _buildPhoneNumberField(double width, LoginMessages messages, Auth auth) {
+    return AnimatedTextFormField(
+      // animatedWidth: width,
+      enabled: auth.isSignup,
+      // loadingController: _loadingController,
+      // inertiaController: _postSwitchAuthController,
+
+      // inertiaDirection: TextFieldInertiaDirection.right,
+      labelText: messages.phoneNumberHint,
+      controller: _phoneNumberController,
+      textInputAction: TextInputAction.done,
+      focusNode: _phoneNumberFocusNode,
+      prefixIcon: Icon(FontAwesomeIcons.mobile),
       onFieldSubmitted: (value) => _submit(),
-      validator: auth.isSignup
-          ? (value) {
-              if (value != _passController.text) {
-                return messages.confirmPasswordError;
-              }
-              return null;
-            }
-          : (value) => null,
-      onSaved: (value) => auth.confirmPassword = value,
+      // validator: (val) => auth.isLogin ? null : (val[0] == '+') && val.length >= 10 && val.length < 20 ? null : "Enter a valid number",// TODO
+      
+      onSaved: (value) => auth.phoneNumber = value,
+    );
+  }
+
+  Widget _firstNameField(double width, LoginMessages messages, Auth auth) {
+    return AnimatedTextFormField(
+      // animatedWidth: width,
+      enabled: auth.isSignup,
+      // loadingController: _loadingController,
+      // inertiaController: _postSwitchAuthController,
+
+      // inertiaDirection: TextFieldInertiaDirection.right,
+      labelText: messages.firstNameHint, // TODO
+      controller: _firstNameController,
+      textInputAction: TextInputAction.done,
+      focusNode: _firstNameFocusNode,
+      prefixIcon: Icon(FontAwesomeIcons.user),
+      onFieldSubmitted: (value){
+        FocusScope.of(context).requestFocus(_lastNameFocusNode);
+      },
+      validator: (val) => auth.isLogin ? null : val.length >= 2 ? null: "Enter a valid name", // TODO
+
+      onSaved: (value) => auth.firstName = value,
+    );
+  }
+
+  Widget _lastNameField(double width, LoginMessages messages, Auth auth) {
+    return AnimatedTextFormField(
+      // animatedWidth: width,
+      enabled: auth.isSignup,
+      // loadingController: _loadingController,
+      // inertiaController: _postSwitchAuthController,
+
+      // inertiaDirection: TextFieldInertiaDirection.right,
+      labelText: messages.lastNameHint,
+      controller: _lastNameController,
+      textInputAction: TextInputAction.next,
+      focusNode: _lastNameFocusNode,
+      prefixIcon: Icon(FontAwesomeIcons.user),
+      onFieldSubmitted: (value){
+        FocusScope.of(context).requestFocus(_phoneNumberFocusNode);
+      },
+      validator: (val) => auth.isLogin ? null : val.length >= 2 ? null: "Enter a valid last name", // TODO
+      
+      onSaved: (value) => auth.lastName = value,
     );
   }
 
@@ -630,11 +700,12 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
       key: _formKey,
       child: Column(
         children: [
+        
           Container(
             padding: EdgeInsets.only(
               left: cardPadding,
               right: cardPadding,
-              top: cardPadding + 10,
+              top:  cardPadding + 10,
             ),
             width: cardWidth,
             child: Column(
@@ -643,7 +714,7 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
                 _buildNameField(textFieldWidth, messages, auth),
                 SizedBox(height: 20),
                 _buildPasswordField(textFieldWidth, messages, auth),
-                SizedBox(height: 10),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -661,7 +732,16 @@ class _LoginCardState extends State<_LoginCard> with TickerProviderStateMixin {
               vertical: 10,
             ),
             onExpandCompleted: () => _postSwitchAuthController.forward(),
-            child: _buildConfirmPasswordField(textFieldWidth, messages, auth),
+            child: Column(children: [
+              _buildConfirmPasswordField(textFieldWidth, messages, auth), 
+              SizedBox(height: 20),
+              _firstNameField(textFieldWidth, messages, auth),
+              SizedBox(height: 20),
+              _lastNameField(textFieldWidth, messages, auth),
+              SizedBox(height: 20),
+              _buildPhoneNumberField(textFieldWidth, messages, auth),
+              ],
+            )
           ),
           Container(
             padding: Paddings.fromRBL(cardPadding),

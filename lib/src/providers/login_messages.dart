@@ -14,10 +14,17 @@ class LoginMessages with ChangeNotifier {
     this.goBackButton: defaultGoBackButton,
     this.confirmPasswordError: defaultConfirmPasswordError,
     this.recoverPasswordSuccess: defaultRecoverPasswordSuccess,
+    this.phoneNumberHint: defaultPhoneNumberHint, 
+    this.firstNameHint: defaultFirstNameHint,
+    this.lastNameHint: defaultLastNameHint,
+
   });
 
   static const defaultUsernameHint = 'Email';
   static const defaultPasswordHint = 'Password';
+  static const defaultPhoneNumberHint = 'Phone Number';
+  static const defaultFirstNameHint = 'First Name';
+  static const defaultLastNameHint = 'Last Name';
   static const defaultConfirmPasswordHint = 'Confirm Password';
   static const defaultForgotPasswordButton = 'Forgot Password?';
   static const defaultLoginButton = 'LOGIN';
@@ -35,6 +42,15 @@ class LoginMessages with ChangeNotifier {
 
   /// Hint text of the password [TextField]
   final String passwordHint;
+
+  /// Hint text of the phone number [TextField]
+  final String phoneNumberHint;
+
+  /// Hint text of the first name [TextField]
+  final String firstNameHint;
+
+  /// Hint text of the first name [TextField]
+  final String lastNameHint;
 
   /// Hint text of the confirm password [TextField]
   final String confirmPasswordHint;
